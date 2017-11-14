@@ -14,16 +14,19 @@ $filesManaged = explode("\n", shell_exec($command));
 
 echo "Managed files collected." . "\n";
 
-$command = "find @location -type f -follow -print | grep -v -E '@excludes' | sort -nr";
+$command = "find @location -type f -follow -print | grep -v -E '@excludes' | sort -nr > filesONdisk.txt";
+//$command = "ls -1 @location | grep -v -E '@excludes' > filesONdisk.txt";
 
 $command = strtr($command, [
   '@location' => $files_path,
   '@excludes' => '/js/js_|/css/css_|/php/twig/|/styles/',
 ]);
 
-$filesDisk = explode("\n", shell_exec($command));
-
+explode("\n", shell_exec($command));
 echo "Files on Disk collected." . "\n";
+
+$filesDisk = file('filesONdisk.txt');
+
 echo "Compare files...";
 
 $comp = $comp1 = array();
@@ -40,7 +43,7 @@ foreach ($filesManaged as $value) {
 }
 $orphan = array_filter(array_diff($comp, $comp1));
 
-echo "\n" . "Start writing results file";
+echo "\n" . "Start writing results file" . "\n";
 $fp = fopen($result, 'w');
 
 foreach ($orphan as $key => $value) {
@@ -48,7 +51,7 @@ foreach ($orphan as $key => $value) {
 }
 fclose($fp);
 
-$message = "We found @count orphan file(s), check out the details from @results " . "\n";
+$message = "We did found @count orphan file(s), check out the details from @results " . "\n";
 $message = strtr($message, [
   '@count'   => sizeof($orphan),
   '@results' => dirname(__FILE__) . "/" . $result,
