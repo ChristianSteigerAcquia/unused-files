@@ -47,7 +47,7 @@ echo "\n" . "Start writing results file" . "\n";
 $fp = fopen($result, 'w');
 
 foreach ($orphan as $key => $value) {
-  fwrite($fp, $value . "\n");
+  fwrite($fp, $value);
 }
 fclose($fp);
 
