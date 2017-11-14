@@ -1,15 +1,17 @@
 <?php
 echo "Searching for unused files." . "\n";
 
-$files_path = $argv[1];
-$uri = $argv[2];
+$drupal_path = $argv[1];
+$files_path = $drupal_path . $argv[2];
+$uri = $argv[3];
 
 $result = "orphan_file_results.txt";
 
-$command = 'cd ' . $files_path . ' && drush sqlq "SELECT uri FROM file_managed" @uri';
+$command = 'cd ' . $drupal_path . ' && drush sqlq "SELECT uri FROM file_managed" @uri';
 $command = strtr($command, [
   '@uri' => '--uri=' . $uri,
 ]);
+
 $filesManaged = explode("\n", shell_exec($command));
 
 echo "Managed files collected." . "\n";
@@ -31,9 +33,11 @@ echo "Compare files...";
 
 $comp = $comp1 = array();
 foreach ($filesDisk as $file) {
-  $comp[] = str_replace($files_path, "", $file);
+  $comp[] = str_replace("\n", "", str_replace($files_path . "/", "", $file));
+
   echo ".";
 }
+
 foreach ($filesManaged as $value) {
   if (strpos($value, 'public://') === 0 || strpos($value, 'private://') === 0) {
     $value = str_replace('private://', "", $value);
@@ -41,13 +45,14 @@ foreach ($filesManaged as $value) {
     $comp1[] = $value;
   }
 }
+
 $orphan = array_filter(array_diff($comp, $comp1));
 
 echo "\n" . "Start writing results file" . "\n";
 $fp = fopen($result, 'w');
 
 foreach ($orphan as $key => $value) {
-  fwrite($fp, $value);
+  fwrite($fp, $value . "\n");
 }
 fclose($fp);
 
